@@ -1,8 +1,9 @@
 (ns horizon.server
   (:gen-class) ; for -main method in uberjar
   (:require [ns-tracker.core :refer [ns-tracker]]
-            [io.pedestal.http :as server]
+            [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
+            [io.pedestal.test :as test]
             [horizon.service :as service]))
 
 (defonce modified-namespaces
@@ -14,53 +15,44 @@
       (require ns-sym :reload))
     (route/expand-routes routes)))
 
-;; This is an adapted service map, that can be started and stopped
-;; From the REPL you can call server/start and server/stop on this service
-(defonce runnable-service (server/create-server service/service))
-
+;; interactive development
 (defn run-dev
   "The entry-point for 'lein run-dev'"
   [& args]
-  (println "\nCreating your [DEV] server...")
+  (println "\nCreating :dev server...")
   (-> service/service ;; start with production configuration
       (merge {:env :dev
               ;; do not block thread that starts web server
-              ::server/join? false
-              ;; Routes can be a function that resolve routes,
+              ::http/join? false
+              ;; routes can be a function that resolve routes,
               ;;  we can use this to set the routes to be reloadable
-              ::server/routes (watch-routes-fn (service/routes))
+              ::http/routes (watch-routes-fn (service/routes))
               ;; all origins are allowed in dev mode
-              ::server/allowed-origins {:creds true :allowed-origins (constantly true)}
-              ;; Content Security Policy (CSP) is mostly turned off in dev mode
-              ::server/secure-headers {:content-security-policy-settings {:object-src "'none'"}}})
-      ;; Wire up interceptor chains
-      server/default-interceptors
-      server/dev-interceptors
-      server/create-server
-      server/start))
+              ::http/allowed-origins {:creds true :allowed-origins (constantly true)}
+              ;; turn off CSP in dev mode
+              ::http/secure-headers {:content-security-policy-settings {:object-src "'none'"}}})
+      ;; wire up interceptor chains
+      http/default-interceptors
+      http/dev-interceptors
+      http/create-server
+      http/start))
+
+(defonce dev-server (atom nil))
+
+(defn start-dev []
+  (reset! dev-server (run-dev)))
+
+(defn stop-dev []
+  (http/stop dev-server))
+
+(defn test-request [verb url]
+  (test/response-for (::http/service-fn @dev-server) verb url))
+
+;; production
+(defonce server (http/create-server service/service))
 
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
-  (println "\nCreating your server...")
-  (server/start runnable-service))
-
-;; If you package the service up as a WAR,
-;; some form of the following function sections is required (for io.pedestal.servlet.ClojureVarServlet).
-
-;;(defonce servlet  (atom nil))
-;;
-;;(defn servlet-init
-;;  [_ config]
-;;  ;; Initialize your app here.
-;;  (reset! servlet  (server/servlet-init service/service nil)))
-;;
-;;(defn servlet-service
-;;  [_ request response]
-;;  (server/servlet-service @servlet request response))
-;;
-;;(defn servlet-destroy
-;;  [_]
-;;  (server/servlet-destroy @servlet)
-;;  (reset! servlet nil))
-
+  (println "\nCreating :prod server...")
+  (http/start server))
