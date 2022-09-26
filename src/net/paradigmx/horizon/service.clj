@@ -117,10 +117,13 @@
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
              new-item (make-list-item nm)
-             item-id (str (gensym "item"))]
+             item-id (str (gensym "item"))
+             url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
          (-> context
-             (assoc :tx-data [list-item-add list-id item-id new-item])
-             (assoc-in [:request :path-params :item-id] item-id)))
+             (assoc-in [:request :path-params :item-id] item-id)
+             (assoc :response (created new-item "Location" url)
+                    :tx-data [list-item-add list-id item-id new-item])
+             ))
        context))})
 
 ;; the routes
@@ -130,8 +133,8 @@
     ["/todo" :post [db-interceptor list-create]]
     ["/todo" :get echo :route-name :list-query-form]
     ["/todo/:list-id" :get [entity-reader db-interceptor list-view]]
-    ["/todo/:list-id" :post [entity-reader list-item-view db-interceptor list-item-create]]
-    ["/todo/:list-id/:item-id" :get [entity-reader list-item-view db-interceptor]]
+    ["/todo/:list-id" :post [list-item-view db-interceptor list-item-create]]
+    ["/todo/:list-id/:item-id" :get [entity-reader db-interceptor list-item-view]]
     ["/todo/:list-id/:item-id" :put echo :route-name :list-item-update]
     ["/todo/:list-id/:item-id" :delete echo :route-name :list-item-delete]
     })
