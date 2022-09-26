@@ -1,0 +1,10 @@
+# text/html is default
+GET http://localhost:8000/todo/lst40164
+
+# application/json
+GET http://localhost:8000/todo/lst40164
+Accept: application/json
+
+# application/edn
+GET http://localhost:8000/todo/lst40164
+Accept: application/edn
