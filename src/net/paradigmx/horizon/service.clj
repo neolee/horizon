@@ -1,4 +1,4 @@
-(ns horizon.service
+(ns net.paradigmx.horizon.service
   (:require [hashp.core :include-macros true]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]

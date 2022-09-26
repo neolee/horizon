@@ -1,10 +1,10 @@
-(ns horizon.server
+(ns net.paradigmx.horizon.server
   (:gen-class) ; for -main method in uberjar
   (:require [ns-tracker.core :refer [ns-tracker]]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.test :as test]
-            [horizon.service :as service]))
+            [net.paradigmx.horizon.service :as service]))
 
 (defonce modified-namespaces
   (ns-tracker ["src" "test"]))

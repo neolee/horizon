@@ -1,6 +1,6 @@
-(defproject horizon "0.0.1-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject net.paradigmx.horizon "0.0.1-SNAPSHOT"
+  :description "Paradigm X Horizon services"
+  :url "http://horizon.paradigmx.net"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.1"]
@@ -21,7 +21,7 @@
                  [org.slf4j/log4j-over-slf4j "1.7.36"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
-  :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "horizon.server/run-dev"]}
+  :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "net.paradigmx.horizon.server/run-dev"]}
                    :dependencies [[io.pedestal/pedestal.service-tools "0.5.10"]]}
-             :uberjar {:aot [horizon.server]}}
-  :main ^{:skip-aot true} horizon.server)
+             :uberjar {:aot [net.paradigmx.horizon.server]}}
+  :main ^{:skip-aot true} net.paradigmx.horizon.server)
