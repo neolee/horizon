@@ -43,7 +43,7 @@
   (reset! dev-server (run-dev)))
 
 (defn stop-dev []
-  (http/stop dev-server))
+  (http/stop @dev-server))
 
 (defn test-request [verb url]
   (test/response-for (::http/service-fn @dev-server) verb url))
