@@ -5,16 +5,16 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.body-params :as body-params]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring]))
 
 (defn about-page
   [request]
-  (ring-resp/response (format "Paradigm X Horizon (engine:clojure-%s)"
+  (ring/response (format "Paradigm X Horizon (engine:clojure-%s)"
                               (clojure-version))))
 
 (defn home-page
   [request]
-  (ring-resp/response "Welcome to the REAL world!"))
+  (ring/response "Welcome to the REAL world!"))
 
 ;; http helpers
 (defn response [status body & {:as headers}]
