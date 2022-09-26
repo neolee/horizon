@@ -1,7 +1,9 @@
 (ns net.paradigmx.horizon.service
   (:require [hashp.core :include-macros true]
+            [clojure.data.json :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
+            [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.body-params :as body-params]
             [ring.util.response :as ring-resp]))
 
@@ -14,12 +16,30 @@
   [request]
   (ring-resp/response "Welcome to the REAL world!"))
 
+;; http helpers
 (defn response [status body & {:as headers}]
   {:status status :body body :headers headers})
 
 (def ok (partial response 200))
 (def created (partial response 201))
 (def accepted (partial response 202))
+
+(def supported-types ["text/html" "application/edn" "application/json" "text/plain"])
+
+(defn accepted-type [context]
+  (get-in context [:request :accept :field] "text/plain"))
+
+(defn transform-content [body content-type]
+  (case content-type
+    "text/html" body
+    "text/plain" body
+    "application/edn" (pr-str body)
+    "application/json" (json/write-str body)))
+
+(defn coerce-to [response content-type]
+  (-> response
+      (update :body transform-content content-type)
+      (assoc-in [:headers "Content-Type"] content-type)))
 
 ;; database
 (defonce database (atom {}))
@@ -44,8 +64,8 @@
     (assoc-in dbval [list-id :items item-id] new-item)
     dbval))
 
-;; interceptors
-(def common-interceptors [(body-params/body-params) http/html-body])
+;; common interceptors
+(def html-body [(body-params/body-params) http/html-body])
 
 (def echo
   {:name :echo
@@ -54,6 +74,16 @@
      (let [request (:request context)
            response (ok request)]
        (assoc context :response response)))})
+
+(def content-negotiator (content-negotiation/negotiate-content supported-types))
+
+(def coerce-body
+  {:name :coerce-body
+   :leave
+   (fn [context]
+     (cond-> context
+       (nil? (get-in context [:response :headers "Content-Type"]))
+       (update-in [:response] coerce-to (accepted-type context))))})
 
 (def entity-reader
   {:name :entity-reader
@@ -76,6 +106,7 @@
          (assoc-in context [:request :database] @database))
        context ))})
 
+;; application interceptor - todo
 (def list-create
   {:name :list-create
    :enter
@@ -128,17 +159,18 @@
 
 ;; the routes
 (defn routes []
-  #{["/" :get (conj common-interceptors `home-page)]
-    ["/about" :get (conj common-interceptors `about-page)]
+  #{["/" :get (conj html-body `home-page)]
+    ["/about" :get (conj html-body `about-page)]
     ["/todo" :post [db-interceptor list-create]]
     ["/todo" :get echo :route-name :list-query-form]
-    ["/todo/:list-id" :get [entity-reader db-interceptor list-view]]
+    ["/todo/:list-id" :get [coerce-body content-negotiator entity-reader db-interceptor list-view]]
     ["/todo/:list-id" :post [list-item-view db-interceptor list-item-create]]
     ["/todo/:list-id/:item-id" :get [entity-reader db-interceptor list-item-view]]
     ["/todo/:list-id/:item-id" :put echo :route-name :list-item-update]
     ["/todo/:list-id/:item-id" :delete echo :route-name :list-item-delete]
     })
 
+;; the service
 (def service {:env :prod
               ::http/routes routes
 
