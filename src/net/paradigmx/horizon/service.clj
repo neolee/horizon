@@ -22,7 +22,6 @@
 
 (def ok (partial response 200))
 (def created (partial response 201))
-(def accepted (partial response 202))
 
 (def supported-types ["text/html" "application/edn" "application/json" "text/plain"])
 
