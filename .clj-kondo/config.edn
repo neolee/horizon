@@ -5,4 +5,6 @@
            :clojure-lsp/unused-public-var
            {:level :warning
             :exclude #{net.paradigmx.horizon.server}}
-           }}
+           }
+ :hooks {:analyze-call {net.paradigmx.horizon.common/if-let* hooks.horizon/if-let*}}
+ }

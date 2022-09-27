@@ -1,7 +1,7 @@
 (ns net.paradigmx.horizon.todo
   (:require [hashp.core :include-macros true]
             [io.pedestal.http.route :as route]
-            [net.paradigmx.horizon.common :as common]))
+            [net.paradigmx.horizon.common :as common :refer [if-let*]]))
 
 ;; database
 (defonce database (atom {}))
@@ -75,10 +75,9 @@
   {:name :list-view
    :enter
    (fn [context]
-     (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (if-let [this-list (list-with-id context list-id)]
-         (assoc context :result this-list)
-         context)
+     (if-let* [list-id (get-in context [:request :path-params :list-id])
+               this-list (list-with-id context list-id)]
+       (assoc context :result this-list)
        context))})
 
 (def list-item-view
