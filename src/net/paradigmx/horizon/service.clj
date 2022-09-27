@@ -25,6 +25,7 @@
 
 (def ok (partial response 200))
 (def created (partial response 201))
+(def no-content (partial response 204))
 
 (def supported-types ["text/html" "application/edn" "application/json" "text/plain"])
 
@@ -46,25 +47,30 @@
 ;; database
 (defonce database (atom {}))
 
-(defn make-list [nm]
+(defn db-new-list [nm]
   {:name nm
    :items {}})
 
-(defn make-list-item [nm]
+(defn db-new-list-item [nm]
   {:name nm
    :done? false})
 
-(defn find-list-by-id  [dbval db-id]
+(defn db-find-list-by-id  [dbval db-id]
   (get dbval db-id))
 
-(defn find-list-item-by-ids [dbval list-id item-id]
+(defn db-find-list-item-by-ids [dbval list-id item-id]
   (get-in dbval [list-id :items item-id] nil)
   )
 
-(defn list-item-add [dbval list-id item-id new-item]
+(defn db-create-list-item [dbval list-id item-id new-item]
   (if (contains? dbval list-id)
     (assoc-in dbval [list-id :items item-id] new-item)
     dbval))
+
+(defn db-delete-list-item [dbval list-id item-id]
+  (cond-> dbval
+    (some? (get-in dbval [list-id :items item-id]))
+    (update-in [list-id :items] dissoc item-id)))
 
 ;; common interceptors
 (def html-body [(body-params/body-params) http/html-body])
@@ -114,7 +120,7 @@
    :enter
    (fn [context]
      (let [nm (get-in context [:request :query-params :name] "Unnamed List")
-           new-list (make-list nm)
+           new-list (db-new-list nm)
            db-id (str (gensym "lst"))
            url (route/url-for :list-view :params {:list-id db-id})]
        (assoc context
@@ -126,7 +132,7 @@
    :enter
    (fn [context]
      (if-let [db-id (get-in context [:request :path-params :list-id])]
-       (if-let [the-list (find-list-by-id (get-in context [:request :database]) db-id)]
+       (if-let [the-list (db-find-list-by-id (get-in context [:request :database]) db-id)]
          (assoc context :result the-list)
          context)
        context))})
@@ -137,7 +143,7 @@
    (fn [context]
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (if-let [item (find-list-item-by-ids (get-in context [:request :database]) list-id item-id)]
+         (if-let [item (db-find-list-item-by-ids (get-in context [:request :database]) list-id item-id)]
            (assoc context :result item)
            context)
          context)
@@ -149,14 +155,27 @@
    (fn [context]
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
-             new-item (make-list-item nm)
+             new-item (db-new-list-item nm)
              item-id (str (gensym "item"))
              url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
          (-> context
              (assoc-in [:request :path-params :item-id] item-id)
              (assoc :response (created new-item "Location" url)
-                    :tx-data [list-item-add list-id item-id new-item])
+                    :tx-data [db-create-list-item list-id item-id new-item])
              ))
+       context))})
+
+(def list-item-delete
+  {:name :list-item-delete
+   :enter
+   (fn [context]
+     (if-let [list-id (get-in context [:request :path-params :list-id])]
+       (if-let [item-id (get-in context [:request :path-params :item-id])]
+         (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+           (-> context
+               (assoc :response (no-content (str url " deleted"))
+                      :tx-data [db-delete-list-item list-id item-id])))
+         context)
        context))})
 
 ;; the routes
@@ -169,7 +188,7 @@
     ["/todo/:list-id" :post [list-item-view db-interceptor list-item-create]]
     ["/todo/:list-id/:item-id" :get [entity-reader db-interceptor list-item-view]]
     ["/todo/:list-id/:item-id" :put echo :route-name :list-item-update]
-    ["/todo/:list-id/:item-id" :delete echo :route-name :list-item-delete]
+    ["/todo/:list-id/:item-id" :delete [db-interceptor list-item-delete]]
     })
 
 ;; the service
