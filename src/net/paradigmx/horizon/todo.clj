@@ -84,60 +84,52 @@
   {:name :list-item-view
    :leave
    (fn [context]
-     (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (if-let [this-item (list-item-with-id context list-id item-id)]
-           (assoc context :result this-item)
-           context)
-         context)
+     (if-let* [list-id (get-in context [:request :path-params :list-id])
+               item-id (get-in context [:request :path-params :item-id])
+               this-item (list-item-with-id context list-id item-id)]
+       (assoc context :result this-item)
        context))})
 
 (def list-item-create
   {:name :list-item-create
    :enter
    (fn [context]
-     (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (if (list-with-id context list-id)
-         (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
-               new-item (db-new-list-item nm)
-               item-id (str (gensym "item"))
-               url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-           (-> context
-               (assoc-in [:request :path-params :item-id] item-id)
-               (assoc :response (common/created new-item "Location" url)
-                      :tx-data [db-create-list-item list-id item-id new-item])))
-         context)
-       context))})
+     (if-let* [list-id (get-in context [:request :path-params :list-id])
+               _ (list-with-id context list-id)]
+       (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
+             new-item (db-new-list-item nm)
+             item-id (str (gensym "item"))
+             url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+         (-> context
+             (assoc-in [:request :path-params :item-id] item-id)
+             (assoc :response (common/created new-item "Location" url)
+                    :tx-data [db-create-list-item list-id item-id new-item])))
+       context ))})
 
 ;; PUT data should be JSON data with node name "new-item"
 (def list-item-update
   {:name :list-item-update
    :enter
    (fn [context]
-     (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (if-let [new-item (get-in context [:request :json-params :new-item])]
-           (if (list-item-with-id context list-id item-id)
-             (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-               (-> context
-                   (assoc :response (common/ok new-item "Location" url)
-                          :tx-data [db-update-list-item list-id item-id new-item])))
-             context)
-           context)
-         context)
+     (if-let* [list-id (get-in context [:request :path-params :list-id])
+               item-id (get-in context [:request :path-params :item-id])
+               new-item (get-in context [:request :json-params :new-item])
+               _ (list-item-with-id context list-id item-id)]
+       (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+         (-> context
+             (assoc :response (common/ok new-item "Location" url)
+                    :tx-data [db-update-list-item list-id item-id new-item])))
        context))})
 
 (def list-item-delete
   {:name :list-item-delete
    :enter
    (fn [context]
-     (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (if (list-item-with-id context list-id item-id)
-           (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-             (-> context
-                 (assoc :response (common/no-content (str url " deleted"))
-                        :tx-data [db-delete-list-item list-id item-id])))
-           context)
-         context)
+     (if-let* [list-id (get-in context [:request :path-params :list-id])
+               item-id (get-in context [:request :path-params :item-id])
+               _ (list-item-with-id context list-id item-id)]
+       (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+         (-> context
+             (assoc :response (common/no-content (str url " deleted"))
+                    :tx-data [db-delete-list-item list-id item-id])))
        context))})
