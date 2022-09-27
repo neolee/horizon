@@ -55,11 +55,11 @@
   {:name nm
    :done? false})
 
-(defn db-find-list-by-id  [dbval db-id]
-  (get dbval db-id))
+(defn db-query-list-by-id [dbval list-id]
+  (get dbval list-id))
 
-(defn db-find-list-item-by-ids [dbval list-id item-id]
-  (get-in dbval [list-id :items item-id] nil)
+(defn db-query-list-item-by-ids [dbval list-id item-id]
+  (get-in dbval [list-id :items item-id])
   )
 
 (defn db-create-list-item [dbval list-id item-id new-item]
@@ -102,8 +102,8 @@
   {:name :entity-reader
    :leave
    (fn [context]
-     (if-let [item (:result context)]
-       (assoc context :response (ok item))
+     (if-let [object (:result context)]
+       (assoc context :response (ok object))
        context))})
 
 (def db-interceptor
@@ -120,6 +120,14 @@
        context ))})
 
 ;; application interceptor - todo
+(defn list-with-id [context list-id]
+  (db-query-list-by-id (get-in context [:request :database]) list-id)
+  )
+
+(defn list-item-with-id [context list-id item-id]
+  (db-query-list-item-by-ids (get-in context [:request :database]) list-id item-id)
+  )
+
 (def list-create
   {:name :list-create
    :enter
@@ -136,9 +144,9 @@
   {:name :list-view
    :enter
    (fn [context]
-     (if-let [db-id (get-in context [:request :path-params :list-id])]
-       (if-let [the-list (db-find-list-by-id (get-in context [:request :database]) db-id)]
-         (assoc context :result the-list)
+     (if-let [list-id (get-in context [:request :path-params :list-id])]
+       (if-let [this-list (list-with-id context list-id)]
+         (assoc context :result this-list)
          context)
        context))})
 
@@ -148,8 +156,8 @@
    (fn [context]
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (if-let [item (db-find-list-item-by-ids (get-in context [:request :database]) list-id item-id)]
-           (assoc context :result item)
+         (if-let [this-item (list-item-with-id context list-id item-id)]
+           (assoc context :result this-item)
            context)
          context)
        context))})
@@ -159,15 +167,16 @@
    :enter
    (fn [context]
      (if-let [list-id (get-in context [:request :path-params :list-id])]
-       (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
-             new-item (db-new-list-item nm)
-             item-id (str (gensym "item"))
-             url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-         (-> context
-             (assoc-in [:request :path-params :item-id] item-id)
-             (assoc :response (created new-item "Location" url)
-                    :tx-data [db-create-list-item list-id item-id new-item])
-             ))
+       (if (list-with-id context list-id)
+         (let [nm (get-in context [:request :query-params :name] "Unnamed Item")
+               new-item (db-new-list-item nm)
+               item-id (str (gensym "item"))
+               url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+           (-> context
+               (assoc-in [:request :path-params :item-id] item-id)
+               (assoc :response (created new-item "Location" url)
+                      :tx-data [db-create-list-item list-id item-id new-item])))
+         context)
        context))})
 
 ;; PUT data should be JSON data with node name "new-item"
@@ -178,10 +187,12 @@
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (if-let [item-id (get-in context [:request :path-params :item-id])]
          (if-let [new-item (get-in context [:request :json-params :new-item])]
-           (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-             (-> context
-                 (assoc :response (ok new-item "Location" url)
-                        :tx-data [db-update-list-item list-id item-id new-item])))
+           (if (list-item-with-id context list-id item-id)
+             (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+               (-> context
+                   (assoc :response (ok new-item "Location" url)
+                          :tx-data [db-update-list-item list-id item-id new-item])))
+             context)
            context)
          context)
        context))})
@@ -192,10 +203,12 @@
    (fn [context]
      (if-let [list-id (get-in context [:request :path-params :list-id])]
        (if-let [item-id (get-in context [:request :path-params :item-id])]
-         (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
-           (-> context
-               (assoc :response (no-content (str url " deleted"))
-                      :tx-data [db-delete-list-item list-id item-id])))
+         (if (list-item-with-id context list-id item-id)
+           (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+             (-> context
+                 (assoc :response (no-content (str url " deleted"))
+                        :tx-data [db-delete-list-item list-id item-id])))
+           context)
          context)
        context))})
 
