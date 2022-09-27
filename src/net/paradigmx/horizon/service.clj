@@ -9,12 +9,15 @@
 
 (defn about-page
   [request]
-  (ring/response (format "Paradigm X Horizon (engine:clojure-%s)"
-                              (clojure-version))))
+  (ring/response (format "Paradigm X Horizon (engine:clojure-%s, uri:'%s')"
+                         (clojure-version) (get-in request [:uri]))))
 
 (defn home-page
   [request]
-  (ring/response "Welcome to the REAL world!"))
+  (let [greeting (if-let [user (get-in request [:params :user])]
+                   (str "Hi " user ", ")
+                   "Hi, ")]
+    (ring/response (str greeting "welcome to the REAL world!"))))
 
 ;; http helpers
 (defn response [status body & {:as headers}]
