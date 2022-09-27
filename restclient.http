@@ -8,3 +8,17 @@ Accept: application/json
 # application/edn
 GET http://localhost:8000/todo/lst40164
 Accept: application/edn
+
+# GET
+GET http://localhost:8000/todo/lst38356/item38359
+
+# PUT
+PUT http://localhost:8000/todo/lst38356/item38359
+Content-Type: application/json
+
+{
+    "new-item": {
+        "name": "Grape",
+        "done?": true
+    }
+}

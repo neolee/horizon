@@ -67,6 +67,11 @@
     (assoc-in dbval [list-id :items item-id] new-item)
     dbval))
 
+(defn db-update-list-item [dbval list-id item-id new-item]
+  (cond-> dbval
+    (some? (get-in dbval [list-id :items item-id]))
+    (assoc-in [list-id :items item-id] new-item)))
+
 (defn db-delete-list-item [dbval list-id item-id]
   (cond-> dbval
     (some? (get-in dbval [list-id :items item-id]))
@@ -165,6 +170,22 @@
              ))
        context))})
 
+;; PUT data should be JSON data with node name "new-item"
+(def list-item-update
+  {:name :list-item-update
+   :enter
+   (fn [context]
+     (if-let [list-id (get-in context [:request :path-params :list-id])]
+       (if-let [item-id (get-in context [:request :path-params :item-id])]
+         (if-let [new-item (get-in context [:request :json-params :new-item])]
+           (let [url (route/url-for :list-item-view :params {:list-id list-id :item-id item-id})]
+             (-> context
+                 (assoc :response (ok new-item "Location" url)
+                        :tx-data [db-update-list-item list-id item-id new-item])))
+           context)
+         context)
+       context))})
+
 (def list-item-delete
   {:name :list-item-delete
    :enter
@@ -182,12 +203,12 @@
 (defn routes []
   #{["/" :get (conj html-body `home-page)]
     ["/about" :get (conj html-body `about-page)]
-    ["/todo" :post [db-interceptor list-create]]
     ["/todo" :get echo :route-name :list-query-form]
+    ["/todo" :post [db-interceptor list-create]]
     ["/todo/:list-id" :get [coerce-body content-negotiator entity-reader db-interceptor list-view]]
     ["/todo/:list-id" :post [list-item-view db-interceptor list-item-create]]
-    ["/todo/:list-id/:item-id" :get [entity-reader db-interceptor list-item-view]]
-    ["/todo/:list-id/:item-id" :put echo :route-name :list-item-update]
+    ["/todo/:list-id/:item-id" :get [coerce-body content-negotiator entity-reader db-interceptor list-item-view]]
+    ["/todo/:list-id/:item-id" :put [(body-params/body-params) list-item-view db-interceptor list-item-update]]
     ["/todo/:list-id/:item-id" :delete [db-interceptor list-item-delete]]
     })
 
