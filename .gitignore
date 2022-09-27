@@ -1,5 +1,6 @@
 # Project related
-.clj-kondo/
+.clj-kondo/.cache
+.clj-kondo/rewrite-clj
 .lsp/
 
 # Java related

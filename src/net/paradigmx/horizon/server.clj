@@ -4,6 +4,7 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.test :as test]
+            [net.paradigmx.horizon.todo :as todo]
             [net.paradigmx.horizon.service :as service]))
 
 (defonce modified-namespaces
@@ -18,7 +19,7 @@
 ;; interactive development
 (defn run-dev
   "The entry-point for 'lein run-dev'"
-  [& args]
+  [& _args]
   (println "\nCreating :dev server...")
   (-> service/service ;; start with production configuration
       (merge {:env :dev
@@ -48,11 +49,13 @@
 (defn test-request [verb url]
   (test/response-for (::http/service-fn @dev-server) verb url))
 
+(def todo-db todo/database)
+
 ;; production
 (defonce server (http/create-server service/service))
 
 (defn -main
   "The entry-point for 'lein run'"
-  [& args]
+  [& _args]
   (println "\nCreating :prod server...")
   (http/start server))

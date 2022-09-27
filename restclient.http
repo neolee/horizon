@@ -10,10 +10,10 @@ GET http://localhost:8000/todo/lst40164
 Accept: application/edn
 
 # GET
-GET http://localhost:8000/todo/lst38355/item38366
+GET http://localhost:8000/todo/lst40230/item40236
 
 # PUT
-PUT http://localhost:8000/todo/lst38355/item38366
+PUT http://localhost:8000/todo/lst40230/item40236
 Content-Type: application/json
 
 {

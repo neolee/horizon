@@ -1,0 +1,8 @@
+{:linters {:unused-binding
+           {:exclude-destructured-keys-in-fn-args true
+            :exclude-destructured-as true
+            :exclude-defmulti-args true}
+           :clojure-lsp/unused-public-var
+           {:level :warning
+            :exclude #{net.paradigmx.horizon.server}}
+           }}
