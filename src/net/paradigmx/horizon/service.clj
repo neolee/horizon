@@ -22,7 +22,7 @@
 (defn routes []
   #{["/" :get (conj common/html-body `home-page)]
     ["/about" :get (conj common/html-body `about-page)]
-    ["/todo" :get common/echo :route-name :list-query-form]
+    ["/todo" :get (conj common/html-body `todo/todos-page)]
     ["/todo" :post [todo/db-interceptor todo/list-create]]
     ["/todo/:list-id" :get [common/coerce-body common/content-negotiator common/entity-reader
                             todo/db-interceptor todo/list-view]]

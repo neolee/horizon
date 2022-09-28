@@ -1,6 +1,8 @@
 (ns net.paradigmx.horizon.todo
   (:require [hashp.core :include-macros true]
             [io.pedestal.http.route :as route]
+            [ring.util.response :as ring]
+            [hiccup.page :as hiccup]
             [net.paradigmx.horizon.common :as common :refer [if-let*]]))
 
 ;; database
@@ -35,6 +37,38 @@
   (cond-> db
     (some? (get-in db [list-id :items item-id]))
     (update-in [list-id :items] dissoc item-id)))
+
+;; page(s)
+(defn- page-css []
+  (str ".checklist {width: 12em; overflow: auto;}"
+       ".checklist p {width: 7em; text-align: right;}"
+       ".checklist label {width: 10em; float: right;}")
+  )
+
+(defn todos-page [_request]
+  (ring/response
+   (hiccup/html5
+    [:head
+     [:title "TODO Lists"]
+     [:style (page-css)]]
+    [:body
+     [:h1#todo-title "Todos"]
+     (for [list-id (keys @database)]
+       (let [this-list (db-query-list-by-id @database list-id)
+             list-name (:name this-list)]
+         [:div {:id list-id}
+          [:h3 list-name]
+          [:fieldset {:class "checklist"}
+           (for [item-id (keys (:items this-list))]
+             (let [this-item (db-query-list-item-by-ids @database list-id item-id)
+                   item-name (:name this-item)
+                   item-done (:done? this-item)]
+               [:div
+                [:input {:type "checkbox" :id item-id :checked item-done}]
+                [:label {:for item-id} item-name]]
+               ))]
+          ]))
+     ])))
 
 ;; interceptor helpers
 (defn list-with-id [ctx list-id]
