@@ -28,10 +28,10 @@
     (assoc-in db [list-id :items item-id] new-item)
     db))
 
+#_{:clj-kondo/ignore [:missing-else-branch]}
 (defn db-update-list-item [db list-id item-id new-item]
-  (cond-> db
-    (some? (get-in db [list-id :items item-id]))
-    (assoc-in [list-id :items item-id] new-item)))
+  (if-let [old-item (get-in db [list-id :items item-id])]
+    (assoc-in db [list-id :items item-id] (merge old-item new-item))))
 
 (defn db-delete-list-item [db list-id item-id]
   (cond-> db

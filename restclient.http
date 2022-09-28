@@ -13,12 +13,22 @@ Accept: application/edn
 GET http://localhost:8000/todo/lst40777/item40783
 
 # PUT
-PUT http://localhost:8000/todo/lst40777/item40783
+PUT http://localhost:8000/todo/lst40861/item40873
 Content-Type: application/json
 
 {
     "new-item": {
         "name": "Grape",
+        "done?": true
+    }
+}
+
+# PUT
+PUT http://localhost:8000/todo/lst40876/item40879
+Content-Type: application/json
+
+{
+    "new-item": {
         "done?": true
     }
 }
