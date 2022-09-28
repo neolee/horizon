@@ -14,29 +14,38 @@
   {:name nm
    :done? false})
 
-(defn db-query-list-by-id [dbval list-id]
-  (get dbval list-id))
+(defn db-query-list-by-id [db list-id]
+  (get db list-id))
 
-(defn db-query-list-item-by-ids [dbval list-id item-id]
-  (get-in dbval [list-id :items item-id])
+(defn db-query-list-item-by-ids [db list-id item-id]
+  (get-in db [list-id :items item-id])
   )
 
-(defn db-create-list-item [dbval list-id item-id new-item]
-  (if (contains? dbval list-id)
-    (assoc-in dbval [list-id :items item-id] new-item)
-    dbval))
+(defn db-create-list-item [db list-id item-id new-item]
+  (if (contains? db list-id)
+    (assoc-in db [list-id :items item-id] new-item)
+    db))
 
-(defn db-update-list-item [dbval list-id item-id new-item]
-  (cond-> dbval
-    (some? (get-in dbval [list-id :items item-id]))
+(defn db-update-list-item [db list-id item-id new-item]
+  (cond-> db
+    (some? (get-in db [list-id :items item-id]))
     (assoc-in [list-id :items item-id] new-item)))
 
-(defn db-delete-list-item [dbval list-id item-id]
-  (cond-> dbval
-    (some? (get-in dbval [list-id :items item-id]))
+(defn db-delete-list-item [db list-id item-id]
+  (cond-> db
+    (some? (get-in db [list-id :items item-id]))
     (update-in [list-id :items] dissoc item-id)))
 
-;; common interceptors
+;; interceptor helpers
+(defn list-with-id [ctx list-id]
+  (db-query-list-by-id (get-in ctx [:request :database]) list-id)
+  )
+
+(defn list-item-with-id [ctx list-id item-id]
+  (db-query-list-item-by-ids (get-in ctx [:request :database]) list-id item-id)
+  )
+
+;; db interceptor, the only interceptor that r/w the database
 (def db-interceptor
   {:name :database-interceptor
    :enter
@@ -50,15 +59,7 @@
          (assoc-in context [:request :database] @database))
        context ))})
 
-;; application interceptor - todo
-(defn list-with-id [context list-id]
-  (db-query-list-by-id (get-in context [:request :database]) list-id)
-  )
-
-(defn list-item-with-id [context list-id item-id]
-  (db-query-list-item-by-ids (get-in context [:request :database]) list-id item-id)
-  )
-
+;; interceptors
 (def list-create
   {:name :list-create
    :enter
