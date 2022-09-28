@@ -22,3 +22,6 @@ Content-Type: application/json
         "done?": true
     }
 }
+
+# JSON
+GET http://localhost:8000/test

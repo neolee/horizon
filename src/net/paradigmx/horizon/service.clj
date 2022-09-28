@@ -3,8 +3,9 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body-params]
             [ring.util.response :as ring]
-            [net.paradigmx.horizon.common :as common]
-            [net.paradigmx.horizon.todo :as todo]))
+            [net.paradigmx.horizon.playground :as play]
+            [net.paradigmx.horizon.todo :as todo]
+            [net.paradigmx.horizon.common :as common]))
 
 (defn about-page
   [request]
@@ -22,6 +23,7 @@
 (defn routes []
   #{["/" :get (conj common/html-body `home-page)]
     ["/about" :get (conj common/html-body `about-page)]
+    ["/test" :get (conj common/json-body `play/test-json)]
     ["/todo" :get (conj common/html-body `todo/todos-page)]
     ["/todo" :post [todo/db-interceptor todo/list-create]]
     ["/todo/:list-id" :get [common/coerce-body common/content-negotiator common/entity-reader

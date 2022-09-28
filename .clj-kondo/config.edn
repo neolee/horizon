@@ -4,7 +4,8 @@
             :exclude-defmulti-args true}
            :clojure-lsp/unused-public-var
            {:level :warning
-            :exclude #{net.paradigmx.horizon.server}}
+            :exclude #{net.paradigmx.horizon.common/echo}
+            :exclude-regex #{"net.paradigmx.horizon.server/dev-.*"}}
            }
  :hooks {:analyze-call {net.paradigmx.horizon.common/if-let* hooks.horizon/if-let*}}
  }

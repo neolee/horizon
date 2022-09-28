@@ -49,6 +49,8 @@
 ;; common interceptors
 (def html-body [(body-params/body-params) http/html-body])
 
+(def json-body [(body-params/body-params) http/json-body])
+
 (def echo
   {:name :echo
    :enter

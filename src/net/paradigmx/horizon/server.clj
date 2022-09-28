@@ -40,16 +40,16 @@
 
 (defonce dev-server (atom nil))
 
-(defn start-dev []
+(defn dev-start []
   (reset! dev-server (run-dev)))
 
-(defn stop-dev []
+(defn dev-stop []
   (http/stop @dev-server))
 
-(defn test-request [verb url]
+(defn dev-request [verb url]
   (test/response-for (::http/service-fn @dev-server) verb url))
 
-(def todo-db todo/database)
+(def dev-todo-db todo/database)
 
 ;; production
 (defonce server (http/create-server service/service))
