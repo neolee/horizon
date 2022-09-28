@@ -8,9 +8,9 @@
             [net.paradigmx.horizon.common :as common]))
 
 (defn about-page
-  [request]
-  (ring/response (format "Paradigm X Horizon (engine:clojure-%s, uri:'%s')"
-                         (clojure-version) (get-in request [:uri]))))
+  [_request]
+  (ring/response (format "Paradigm X Horizon (engine:clojure-%s)"
+                         (clojure-version))))
 
 (defn home-page
   [request]
