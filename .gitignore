@@ -1,6 +1,7 @@
 # project
-.clj-kondo/.cache
-.clj-kondo/rewrite-clj
+.clj-kondo/
+!.clj-kondo/config.edn
+!.clj-kondo/hook/
 .lsp/
 
 # java
