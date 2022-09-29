@@ -1,0 +1,2 @@
+clj -T:build uberjar && \
+native-image -jar target/holiday.jar --no-fallback target/holiday

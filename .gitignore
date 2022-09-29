@@ -1,26 +1,27 @@
-# Project related
+# project
 .clj-kondo/.cache
 .clj-kondo/rewrite-clj
 .lsp/
 
-# Java related
+# java
 pom.xml
 pom.xml.asc
 *jar
 *.class
 
-# Leiningen
-classes/
+# clojure
 lib/
-native/
-checkouts/
-target/
+**/classes/
+**/native/
+**/checkouts/
+**/target/
+**/.cpcache/
 .lein-*
-repl-port
 .nrepl-port
 .repl
+*build_artifacts*
 
-# Temp Files
+# temp
 *.orig
 *~
 .*.swp
@@ -28,16 +29,16 @@ repl-port
 *.tmp
 *.bak
 
-# OS X
+# macos
 .DS_Store
 
-# Logging
+# logging
 *.log
 /logs/
 
-# Builds
+# builds
 out/
 build/
 
-# Local
+# local
 data/
