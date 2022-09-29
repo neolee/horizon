@@ -49,6 +49,13 @@
 (defn dev-request [verb url]
   (test/response-for (::http/service-fn @dev-server) verb url))
 
+(defn dev-save-data [db fpath]
+  (spit fpath (pr-str @db))
+  )
+
+(defn dev-load-data [db fpath]
+  (reset! db (read-string (slurp fpath))))
+
 (def dev-todo-db todo/database)
 
 ;; production
