@@ -42,4 +42,4 @@ out/
 build/
 
 # local
-data/
+local/
