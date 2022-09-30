@@ -1,6 +1,5 @@
 (ns net.paradigmx.horizon.common
-  (:require [hashp.core :include-macros true]
-            [clojure.data.json :as json]
+  (:require [clojure.data.json :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.body-params :as body-params]))

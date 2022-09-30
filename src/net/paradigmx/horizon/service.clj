@@ -1,6 +1,5 @@
 (ns net.paradigmx.horizon.service
-  (:require [hashp.core :include-macros true]
-            [io.pedestal.http :as http]
+  (:require [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body-params]
             [ring.util.response :as ring]
             [net.paradigmx.horizon.playground :as play]

@@ -1,6 +1,5 @@
 (ns net.paradigmx.horizon.todo
-  (:require [hashp.core :include-macros true]
-            [io.pedestal.http.route :as route]
+  (:require [io.pedestal.http.route :as route]
             [ring.util.response :as ring]
             [hiccup.page :as hiccup]
             [net.paradigmx.horizon.common :as common :refer [if-let*]]))

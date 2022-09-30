@@ -5,12 +5,12 @@
 
 (def basis (b/create-basis {:project "deps.edn"}))
 
-(def jar-file "target/holiday.jar")
-
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(defn uberjar [_]
+(def jar-holiday "target/holiday.jar")
+
+(defn uberjar-holiday [_]
   (clean nil)
   (b/copy-dir {:src-dirs ["src"]
                :target-dir class-dir})
@@ -18,6 +18,6 @@
                   :src-dirs ["src"]
                   :class-dir class-dir})
   (b/uber {:class-dir class-dir
-           :uber-file jar-file
+           :uber-file jar-holiday
            :basis basis
-           :main 'holiday.main}))
+           :main 'net.paradigmx.util.holiday}))

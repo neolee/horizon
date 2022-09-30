@@ -5,7 +5,7 @@
   <statusListener class="ch.qos.logback.core.status.NopStatusListener" /> -->
 
   <!-- Simple file output -->
-  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <!-- encoder defaults to ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} %X{io.pedestal} - %msg%n</pattern>
@@ -22,31 +22,23 @@
     <prudent>true</prudent>
   </appender>
 
-
   <!-- Console output -->
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
     <!-- encoder defaults to ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
     <encoder>
       <pattern>%-5level %logger{36} %X{io.pedestal} - %msg%n</pattern>
     </encoder>
     <!-- Only log level INFO and above -->
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>INFO</level>
+      <level>warn</level>
     </filter>
   </appender>
 
-
-  <!-- Enable FILE and STDOUT appenders for all log messages.
-       By default, only log at level INFO and above. -->
-  <root level="INFO">
-    <appender-ref ref="FILE" />
-    <appender-ref ref="STDOUT" />
+  <!-- Enable file and stdout appenders -->
+  <root level="info" name="rollingFileLogger">
+    <appender-ref ref="file" />
   </root>
-
-  <!-- For loggers in the these namespaces, log at all levels. -->
-  <logger name="user" level="ALL" />
-  <!-- To log pedestal internals, enable this and change ThresholdFilter to DEBUG
-    <logger name="io.pedestal" level="ALL" />
-  -->
-
+  <logger level="warn" name="stdoutLogger">
+    <appender-ref ref="stdout" />
+  </logger>
 </configuration>
