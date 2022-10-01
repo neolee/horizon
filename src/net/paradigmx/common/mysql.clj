@@ -13,11 +13,11 @@
    :dbname dbname}
   )
 
-(defn info-schema [ds]
+(defn schema-tables [ds]
   (jdbc/execute! ds ["SHOW TABLES"] ds-opts))
 
 (defn table-exists? [ds dbname tname]
-  (seq (for [x (info-schema ds)
+  (seq (for [x (schema-tables ds)
              :let [k (keyword (str "tables_in_" dbname))
                    nm (k x)]
              :when (= nm tname)]

@@ -6,6 +6,7 @@
             [next.jdbc :as jdbc]
             [honey.sql :as sql]
             [honey.sql.helpers :as h :refer [create-table with-columns drop-table]]
+            [tick.core :as t]
             [net.paradigmx.common.mysql :as mysql]))
 
 ;; utility `holiday`
@@ -34,18 +35,19 @@
 (defn exec! [tx]
   (partial jdbc/execute! tx))
 
-(defn drop-schema [ds]
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn drop-schema! []
   (-> (drop-table (keyword tname))
       (sql/format)
       ((exec! ds))))
 
-(defn init-schema [ds]
+(defn init-schema! []
   (with-open [conn (jdbc/get-connection ds)]
     (jdbc/with-transaction [tx conn]
       (-> (create-table (keyword tname) :if-not-exists)
           (with-columns [[:id :int [:not nil] :auto-increment :primary :key]
                          [:date [:char 10] [:not nil]]
-                         [:name [:varchar 20] [:not nil]]
+                         [:name [:varchar 40] [:not nil]]
                          [:is_off :boolean [:not nil]]])
           (sql/format)
           ((exec! tx)))
@@ -53,15 +55,32 @@
                        :add-index [:unique nil :date]})
           ((exec! tx))))))
 
-(defn populate-data []
+(defn insert-or-update! [date name is-off]
+  (-> (sql/format {:insert-into (keyword tname)
+                   :values [{:date date :name name :is-off is-off}]
+                   :on-duplicate-key-update {:name name :is-off is-off}})
+      ((exec! ds)))
+  (print ".")
   )
+
+(defn do-data-for-year! [year]
+  (print (format "[%d]" year))
+  (doseq [day (data-for-year year)]
+    (let [{date :date name :name is-off :isOffDay} day
+          is-off (if is-off 1 0)]
+      (insert-or-update! date name is-off)))
+  (println))
+
+(defn pull-data! [begin end]
+  (println (format "pulling and processing holiday data between year %d-%d" begin end))
+  (doseq [x (range begin (+ end 2))]
+    (do-data-for-year! x))
+  (println "done."))
 
 #_{:clj-kondo/ignore [:missing-else-branch]}
-(defn sync-data []
-  (if (not (mysql/table-exists? ds dbname tname))
-    (init-schema ds))
-  (populate-data)
-  )
-
 (defn -main [& args]
-  (apply println args))
+  (if (not (mysql/table-exists? ds dbname tname))
+    (init-schema!))
+  (let [begin (or (first args) 2007)
+        end (or (second args) (t/int (t/year)))]
+    (pull-data! begin end)))

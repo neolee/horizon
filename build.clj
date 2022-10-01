@@ -12,7 +12,7 @@
 
 (defn uberjar-holiday [_]
   (clean nil)
-  (b/copy-dir {:src-dirs ["src"]
+  (b/copy-dir {:src-dirs ["src" "config"]
                :target-dir class-dir})
   (b/compile-clj {:basis basis
                   :src-dirs ["src"]
