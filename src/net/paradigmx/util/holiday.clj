@@ -32,8 +32,8 @@
 
 (def ds (jdbc/get-datasource (mysql/db-spec-by-dbname dbname)))
 
-(defn exec! [tx]
-  (partial jdbc/execute! tx))
+(defn exec! [conn]
+  (partial jdbc/execute! conn))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
