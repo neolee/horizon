@@ -1,8 +1,5 @@
 (ns net.paradigmx.common.mysql
-  (:require [next.jdbc :as jdbc]
-            [next.jdbc.result-set :as rs]))
-
-(def ds-opts {:builder-fn rs/as-unqualified-lower-maps})
+  (:require [net.paradigmx.common.db :as db]))
 
 ;; TODO :host, :user, :password should be loaded from config file
 (defn db-spec-by-dbname [dbname]
@@ -14,7 +11,7 @@
   )
 
 (defn schema-tables [ds]
-  (jdbc/execute! ds ["SHOW TABLES"] ds-opts))
+  ((db/exec! ds) ["SHOW TABLES"]))
 
 (defn table-exists? [ds dbname tname]
   (seq (for [x (schema-tables ds)

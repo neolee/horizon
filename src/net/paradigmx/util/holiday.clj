@@ -7,7 +7,8 @@
             [honey.sql :as sql]
             [honey.sql.helpers :as h :refer [create-table with-columns drop-table]]
             [tick.core :as t]
-            [net.paradigmx.common.mysql :as mysql]))
+            [net.paradigmx.common.mysql :as mysql]
+            [net.paradigmx.common.db :as db]))
 
 ;; utility `holiday`
 ;; init the local Chinese holiday db through these steps:
@@ -32,14 +33,11 @@
 
 (def ds (jdbc/get-datasource (mysql/db-spec-by-dbname dbname)))
 
-(defn exec! [conn]
-  (partial jdbc/execute! conn))
-
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
   (-> (drop-table (keyword tname))
       (sql/format)
-      ((exec! ds))))
+      ((db/exec! ds))))
 
 (defn init-schema! []
   (with-open [conn (jdbc/get-connection ds)]
@@ -50,16 +48,16 @@
                          [:name [:varchar 40] [:not nil]]
                          [:is_off :boolean [:not nil]]])
           (sql/format)
-          ((exec! tx)))
+          ((db/exec! tx)))
       (-> (sql/format {:alter-table (keyword tname)
                        :add-index [:unique nil :date]})
-          ((exec! tx))))))
+          ((db/exec! tx))))))
 
 (defn insert-or-update! [date name is-off]
   (-> (sql/format {:insert-into (keyword tname)
                    :values [{:date date :name name :is-off is-off}]
                    :on-duplicate-key-update {:name name :is-off is-off}})
-      ((exec! ds)))
+      ((db/exec! ds)))
   (print ".")
   )
 
