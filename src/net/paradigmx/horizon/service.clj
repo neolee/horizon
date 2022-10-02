@@ -39,20 +39,15 @@
     })
 
 ;; the service
-(def service {:env :prod
-              ::http/routes routes
+(def service
+  {:env :prod
+   ::http/routes (routes)
 
-              ::http/resource-path "/public"
+   ::http/resource-path "/public"
 
-              ::http/type :jetty
-              ::http/port 8000
-
-              ;; isolated jetty config also can be used
-              ;; :io.pedestal.http.jetty/http-configuration (org.eclipse.jetty.server.HttpConfiguration.)
-              ::http/container-options {:h2c? true
-                                        :h2? false
-                                        ;:keystore "test/hp/keystore.jks"
-                                        ;:key-password "password"
-                                        ;:ssl-port 8443
-                                        :ssl? false
-                                        }})
+   ::http/type :jetty
+   ::http/host "127.0.0.1"
+   ::http/port 8000
+   ::http/container-options {:h2c? true
+                             :h2? false
+                             :ssl? false}})

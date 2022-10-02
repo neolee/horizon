@@ -8,9 +8,9 @@
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(def jar-holiday "target/holiday.jar")
+(def jar "target/horizon.jar")
 
-(defn uberjar-holiday [_]
+(defn uberjar [_]
   (clean nil)
   (b/copy-dir {:src-dirs ["src" "config"]
                :target-dir class-dir})
@@ -18,6 +18,6 @@
                   :src-dirs ["src"]
                   :class-dir class-dir})
   (b/uber {:class-dir class-dir
-           :uber-file jar-holiday
+           :uber-file jar
            :basis basis
-           :main 'net.paradigmx.util.holiday}))
+           :main 'net.paradigmx.horizon.server}))
