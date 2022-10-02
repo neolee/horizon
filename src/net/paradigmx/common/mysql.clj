@@ -7,8 +7,7 @@
    :host "localhost"
    :user "paradigmx"
    :password "test"
-   :dbname dbname}
-  )
+   :dbname dbname})
 
 (defn schema-tables [ds]
   ((db/exec! ds) ["SHOW TABLES"]))

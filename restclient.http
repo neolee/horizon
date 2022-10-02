@@ -33,5 +33,11 @@ Content-Type: application/json
     }
 }
 
-# JSON
+# JSON test
 GET http://localhost:8000/test
+
+# GET holiday/:date
+GET http://localhost:8000/holiday/20221002
+
+# GET holiday/:date bad query format
+GET http://localhost:8000/holiday/2022-10-02

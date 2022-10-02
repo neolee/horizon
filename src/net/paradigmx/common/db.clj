@@ -5,8 +5,7 @@
 (def rs-opts {:builder-fn rs/as-unqualified-lower-maps})
 
 (defn- conn-withopts [conn]
-  (jdbc/with-options conn rs-opts)
-  )
+  (jdbc/with-options conn rs-opts))
 
 (defn exec! [conn]
   (let [ds-opts (conn-withopts conn)]

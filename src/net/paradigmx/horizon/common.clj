@@ -1,6 +1,7 @@
 (ns net.paradigmx.horizon.common
   (:require [clojure.data.json :as json]
             [io.pedestal.http :as http]
+            [io.pedestal.interceptor.error :as error]
             [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.body-params :as body-params]))
 
@@ -75,3 +76,12 @@
      (if-let [object (:result context)]
        (assoc context :response (ok object))
        context))})
+
+;; FIXME `error-dispatch` macro have no `clj-kondo` hook defined
+#_{:clj-kondo/ignore [:unresolved-symbol]}
+(def service-error-handler
+  (error/error-dispatch [ctx ex]
+                        [{:exception-type :java.time.format.DateTimeParseException}]
+                        (assoc ctx :response {:status 400 :body "Bad query format"})
+                        :else
+                        (assoc ctx :io.pedestal.interceptor.chain/error ex)))

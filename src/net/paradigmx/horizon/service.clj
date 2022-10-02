@@ -4,6 +4,7 @@
             [ring.util.response :as ring]
             [net.paradigmx.horizon.playground :as play]
             [net.paradigmx.horizon.todo :as todo]
+            [net.paradigmx.horizon.holiday :as holiday]
             [net.paradigmx.horizon.common :as common]))
 
 (defn about-page
@@ -23,6 +24,8 @@
   #{["/" :get (conj common/html-body `home-page)]
     ["/about" :get (conj common/html-body `about-page)]
     ["/test" :get (conj common/json-body `play/test-json)]
+    ["/holiday/:date" :get [http/json-body common/entity-reader
+                            common/service-error-handler holiday/holiday-query]]
     ["/todo" :get (conj common/html-body `todo/todos-page)]
     ["/todo" :post [todo/db-interceptor todo/list-create]]
     ["/todo/:list-id" :get [common/coerce-body common/content-negotiator common/entity-reader
