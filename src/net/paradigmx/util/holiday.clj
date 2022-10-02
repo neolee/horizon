@@ -77,10 +77,18 @@
     (do-data-for-year! x))
   (println "done."))
 
+(defn- parse-arg [x]
+  (if (= java.lang.String (type x))
+    (Integer/parseInt x)
+    x))
+
 #_{:clj-kondo/ignore [:missing-else-branch]}
-(defn -main [& args]
+(defn -main
+  "takes 0, 1 or 2 integer args which (if applicable) present the begin and end year to be processed,
+  default to 2007 and the current year"
+  [& args]
   (if (not (mysql/table-exists? ds dbname tname))
     (init-schema!))
-  (let [begin (or (first args) 2007)
-        end (or (second args) (t/int (t/year)))]
+  (let [begin (or (parse-arg (first args)) 2007)
+        end (or (parse-arg (second args)) (t/int (t/year)))]
     (pull-data! begin end)))
