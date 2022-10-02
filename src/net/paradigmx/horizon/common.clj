@@ -77,8 +77,6 @@
        (assoc context :response (ok object))
        context))})
 
-;; FIXME `error-dispatch` macro have no `clj-kondo` hook defined
-#_{:clj-kondo/ignore [:unresolved-symbol]}
 (def service-error-handler
   (error/error-dispatch [ctx ex]
                         [{:exception-type :java.time.format.DateTimeParseException}]
