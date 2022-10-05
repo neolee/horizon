@@ -3,12 +3,10 @@
             [honey.sql :as sql]
             [honey.sql.helpers :as h :refer [select from where]]
             [tick.core :as t]
-            [net.paradigmx.common.mysql :as mysql]
-            [net.paradigmx.common.db :as db]))
+            [net.paradigmx.common.db :as db]
+            [net.paradigmx.horizon.meta :as meta]))
 
-(def dbname "horizon")
-
-(def ds (jdbc/get-datasource (mysql/db-spec-by-dbname dbname)))
+(def ds (jdbc/get-datasource (db/db-spec-from-config (meta/load-config) meta/dbname)))
 
 (defn db-query-holiday
   "query holiday db for a given day"

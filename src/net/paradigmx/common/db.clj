@@ -2,6 +2,16 @@
   (:require [next.jdbc.result-set :as rs]
             [next.jdbc :as jdbc]))
 
+(defn db-spec-from-config [config dbname]
+  (if config
+    (get-in config [:db])
+    {:dbtype "mysql"
+     :host "localhost"
+     :port 3306
+     :user "paradigmx"
+     :password "test"
+     :dbname dbname}))
+
 (def rs-opts {:builder-fn rs/as-unqualified-lower-maps})
 
 (defn- conn-withopts [conn]

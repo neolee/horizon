@@ -8,7 +8,8 @@
             [honey.sql.helpers :as h :refer [create-table with-columns drop-table]]
             [tick.core :as t]
             [net.paradigmx.common.mysql :as mysql]
-            [net.paradigmx.common.db :as db]))
+            [net.paradigmx.common.db :as db]
+            [net.paradigmx.horizon.meta :as meta]))
 
 ;; utility `holiday`
 ;; init the local Chinese holiday db through these steps:
@@ -28,10 +29,9 @@
       (json/read-str :key-fn keyword)
       (:days)))
 
-(def dbname "horizon")
 (def tname "holiday")
 
-(def ds (jdbc/get-datasource (mysql/db-spec-by-dbname dbname)))
+(def ds (jdbc/get-datasource (db/db-spec-from-config (meta/load-config) meta/dbname)))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
@@ -85,7 +85,7 @@
   "takes 0, 1 or 2 integer args which (if applicable) present the begin and end year to be processed,
   default to 2007 and the current year"
   [& args]
-  (if (not (mysql/table-exists? ds dbname tname))
+  (if (not (mysql/table-exists? ds meta/dbname tname))
     (init-schema!))
   (let [begin (or (parse-arg (first args)) 2007)
         end (or (parse-arg (second args)) (t/int (t/year)))]

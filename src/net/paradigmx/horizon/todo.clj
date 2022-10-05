@@ -2,7 +2,8 @@
   (:require [io.pedestal.http.route :as route]
             [ring.util.response :as ring]
             [hiccup.page :as hiccup]
-            [net.paradigmx.horizon.common :as common :refer [if-let*]]))
+            [net.paradigmx.horizon.common :as common]
+            [net.paradigmx.common.core :refer [if-let*]]))
 
 ;; database
 (defonce database (atom {}))
