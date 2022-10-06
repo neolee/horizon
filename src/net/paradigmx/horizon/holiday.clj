@@ -3,6 +3,8 @@
             [honey.sql :as sql]
             [honey.sql.helpers :as h :refer [select from where]]
             [tick.core :as t]
+            [tick.alpha.interval :as ti]
+            [net.paradigmx.common.core :refer [if-let*]]
             [net.paradigmx.common.db :as db]
             [net.paradigmx.horizon.meta :as meta]))
 
@@ -20,11 +22,27 @@
 (defn weekend? [d]
   (contains? (set (list (day-of-week 6) (day-of-week 7))) (day-of-week d)))
 
-(defn- normal-day-result [d]
+(defn days-in-month [d]
+  (let [i (ti/bounds (t/year-month d))
+        r (t/range (t/beginning i)
+                   (t/end i)
+                   (t/new-period 1 :days))]
+    (map t/date r)))
+
+(defn- data-for-normal-day [d]
   (let [date (format-date d)
         weekend (weekend? d)
         nm (if weekend "周末" "")]
     {:date date :name nm :is_off weekend}))
+
+(defn- data-for-day
+  "build data for given date `d`, use data in `holidays` vector if it's in the vector,
+  call `data-for-normal-day` otherwise"
+  [holidays d]
+  (let [s (format-date d)
+        filtered-seq (filter #(= s (:date %)) holidays)
+        query-result (first filtered-seq)]
+    (if query-result query-result (data-for-normal-day d))))
 
 ;; db helpers
 (def ds (jdbc/get-datasource (db/db-spec-from-config (meta/load-config) meta/dbname)))
@@ -39,7 +57,19 @@
         (sql/format)
         ((db/exec-one! ds)))))
 
-;; query holiday api interceptor, query string format 'yyyyMMdd'
+(defn db-query-range
+  "query holiday db for a given range of days"
+  [d1 d2]
+  (let [beginning (format-date d1)
+        end (format-date d2)]
+    (-> (select :h.date :h.name :h.is_off)
+        (from [:holiday :h])
+        (where [:between :h.date beginning end])
+        (sql/format)
+        ((db/exec! ds)))))
+
+;; api interceptors
+;; query for a day's holiday info, query string format 'yyyyMMdd'
 (def holiday-query
   {:name :holiday-query
    :enter
@@ -47,5 +77,18 @@
      (let [s (get-in context [:request :path-params :date])
            d (parse-date s)
            r1 (db-query-holiday d)
-           r2 (if (nil? r1) (normal-day-result d) r1)]
+           r2 (if (nil? r1) (data-for-normal-day d) r1)]
        (assoc context :result r2)))})
+
+;; query for a monthly calendar, with holiday info, query string format 'yyyyMMdd'
+(def calendar-monthly-query
+  {:name :calendar-monthly-query
+   :enter
+   (fn [context]
+     (if-let* [s (get-in context [:request :path-params :date])
+               d (parse-date s)
+               days (days-in-month d)
+               holidays (db-query-range (t/first-day-of-month d) (t/last-day-of-month d))]
+       (assoc context :result (mapv (partial data-for-day holidays) days))
+       context)
+     )})

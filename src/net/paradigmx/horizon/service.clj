@@ -26,6 +26,8 @@
     ["/test" :get (conj common/json-body `play/test-json)]
     ["/holiday/:date" :get [http/json-body common/entity-reader
                             common/service-error-handler holiday/holiday-query]]
+    ["/calendar/monthly/:date" :get [http/json-body common/entity-reader
+                                     common/service-error-handler holiday/calendar-monthly-query]]
     ["/todo" :get (conj common/html-body `todo/todos-page)]
     ["/todo" :post [todo/db-interceptor todo/list-create]]
     ["/todo/:list-id" :get [common/coerce-body common/content-negotiator common/entity-reader
