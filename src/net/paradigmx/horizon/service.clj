@@ -44,7 +44,7 @@
 (def service
   {:env :prod
    ::http/routes (routes)
-
+   ::http/allowed-origins ["https://frontier.paradigmx.net" "http://localhost:3000" "http://localhost:4173"]
    ::http/resource-path "/public"
 
    ::http/type :jetty
