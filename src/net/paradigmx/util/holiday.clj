@@ -9,7 +9,8 @@
             [tick.core :as t]
             [net.paradigmx.common.mysql :as mysql]
             [net.paradigmx.common.db :as db]
-            [net.paradigmx.horizon.meta :as meta]))
+            [net.paradigmx.horizon.meta :as meta]
+            [net.paradigmx.common.core :refer [parse-int-arg]]))
 
 ;; utility `holiday`
 ;; init the local Chinese holiday db through these steps:
@@ -75,11 +76,6 @@
     (do-data-for-year! x))
   (println "done."))
 
-(defn- parse-arg [x]
-  (if (= java.lang.String (type x))
-    (Integer/parseInt x)
-    x))
-
 #_{:clj-kondo/ignore [:missing-else-branch]}
 (defn -main
   "takes 0, 1 or 2 integer args which (if applicable) present the begin and end year to be processed,
@@ -87,6 +83,6 @@
   [& args]
   (if (not (mysql/table-exists? ds meta/dbname tname))
     (init-schema!))
-  (let [begin (or (parse-arg (first args)) 2007)
-        end (or (parse-arg (second args)) (t/int (t/year)))]
+  (let [begin (or (parse-int-arg (first args)) 2007)
+        end (or (parse-int-arg (second args)) (t/int (t/year)))]
     (pull-data! begin end)))
