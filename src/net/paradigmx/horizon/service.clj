@@ -5,6 +5,7 @@
             [net.paradigmx.horizon.playground :as play]
             [net.paradigmx.horizon.todo :as todo]
             [net.paradigmx.horizon.holiday :as holiday]
+            [net.paradigmx.horizon.play24 :as p24]
             [net.paradigmx.horizon.common :as common]))
 
 (defn about-page
@@ -28,6 +29,8 @@
                             common/service-error-handler holiday/holiday-query]]
     ["/calendar/monthly/:date" :get [http/json-body common/entity-reader
                                      common/service-error-handler holiday/calendar-monthly-query]]
+    ["/play24/:numbers" :get  [http/json-body common/entity-reader
+                                     common/service-error-handler p24/play24-query]]
     ["/todo" :get (conj common/html-body `todo/todos-page)]
     ["/todo" :post [todo/db-interceptor todo/list-create]]
     ["/todo/:list-id" :get [common/coerce-body common/content-negotiator common/entity-reader

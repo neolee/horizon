@@ -36,8 +36,14 @@ Content-Type: application/json
 # JSON test
 GET http://localhost:8000/test
 
-# GET holiday/:date
+# GET /holiday/:date
 GET http://localhost:8000/holiday/20221002
 
-# GET holiday/:date bad query format
+# GET /holiday/:date bad date format
 GET http://localhost:8000/holiday/2022-10-02
+
+# GET /play24/:numbers
+GET http://localhost:8000/play24/2+5+7+11
+
+# GET /play24/:numbers bad input
+GET http://localhost:8000/play24/2+5+7+a

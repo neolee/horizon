@@ -1,8 +1,9 @@
 (ns net.paradigmx.horizon.play24
   (:gen-class)
   (:require [clojure.math.combinatorics :as c],
-            [clojure.walk :as w]
-            [net.paradigmx.common.core :refer [parse-int-arg]]))
+            [clojure.walk :as w],
+            [clojure.string :as str],
+            [net.paradigmx.common.core :refer [if-let* parse-int-arg]]))
 
 (def ^:private op-maps
   (map #(zipmap [:o1 :o2 :o3] %) (c/selections '(* + - /) 3)))
@@ -16,7 +17,7 @@
     (= (eval exp) 24)
     (catch ArithmeticException _e false)))
 
-(defn solutions
+(defn solve
   "return a lazy seq which contains all solutions for given numbers,
   each solution is an s-exp like `(* (+ 11 7) (/ 12 9))`"
   [numbers]
@@ -28,8 +29,22 @@
        (apply concat)
        (filter eval-safe)))
 
+;; api interceptor for horizon
+;; query solutions for given 4 numbers, query string format '2+5+7+11'
+(def play24-query
+  {:name :play24-query
+   :enter
+   (fn [context]
+     (if-let* [s (get-in context [:request :path-params :numbers])
+               numbers (map parse-int-arg (str/split s #"\+"))
+               solutions (mapv str (solve numbers))
+               total (count solutions)]
+       (assoc context :result {:total total :solutions solutions})
+       context))})
+
+;; test entry as standalone game
 (defn -main [& args]
-  (->> (solutions (map parse-int-arg args))
+  (->> (solve (map parse-int-arg args))
        (map println)
        (doall)
        (count)

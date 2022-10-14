@@ -64,6 +64,10 @@
 (def service-error-handler
   (error/error-dispatch [ctx ex]
                         [{:exception-type :java.time.format.DateTimeParseException}]
-                        (assoc ctx :response {:status 400 :body "Bad query format"})
+                        (assoc ctx :response {:status 400 :body "Bad date format"})
+                        [{:exception-type :java.lang.NumberFormatException}]
+                        (assoc ctx :response {:status 400 :body "Bad number format"})
+                        [{:exception-type :java.lang.AssertionError}]
+                        (assoc ctx :response {:status 400 :body "Bad input"})
                         :else
                         (assoc ctx :io.pedestal.interceptor.chain/error ex)))
