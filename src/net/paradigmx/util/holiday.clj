@@ -31,11 +31,12 @@
 
 (def ds (jdbc/get-datasource db-spec))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
+  (print "dropping schema...")
   (-> (drop-table :if-exists holiday-table)
       (sql/format)
-      ((db/exec! ds))))
+      ((db/exec! ds)))
+  (println "done"))
 
 ;; HACK different implementations for `postgresql` and `mysql/mariadb`
 (def ^:private create-table-id-clause
@@ -44,6 +45,7 @@
     [:id :int [:not nil] :auto-increment :primary :key]))
 
 (defn create-schema! []
+  (print "creating schema...")
   (with-open [conn (jdbc/get-connection ds)]
     (jdbc/with-transaction [tx conn]
       (-> (create-table holiday-table :if-not-exists)
@@ -56,7 +58,8 @@
       (let [nm (name holiday-table)
             sql-template "CREATE UNIQUE INDEX %s_unique_date ON %s (date)"
             sql (format sql-template nm nm)]
-        ((db/exec! tx) [sql])))))
+        ((db/exec! tx) [sql]))))
+  (println "done"))
 
 ;; HACK different implementations for `postgresql` and `mysql/mariadb`
 (defn- insert-clause [date name is-off]
@@ -74,26 +77,28 @@
       ((db/exec! ds)))
   (print "."))
 
-(defn do-data-of-year! [year]
+(defn load-data-of-year! [year]
   (print (format "[%d]" year))
   (doseq [day (data-for-year year)]
     (let [{date :date name :name is-off :isOffDay} day]
       (insert-row! date name is-off)))
   (println))
 
-(defn do-data! [begin end]
-  (println (format "pulling and processing holiday data between year %d-%d" begin end))
+(defn load-data! [begin end]
+  (if (db/table-exists? ds (name holiday-table))
+    (println "schema found")
+    (create-schema!))
+  (println (format "loading holiday data from year %d to %d" begin end))
   (doseq [x (range begin (+ end 2))]
-    (do-data-of-year! x))
+    (load-data-of-year! x))
   (println "done."))
 
-#_{:clj-kondo/ignore [:missing-else-branch]}
 (defn -main
   "takes 0, 1 or 2 integer args which (if applicable) present the begin and end year to be processed,
-  default to 2007 and the current year"
+  default to 2007 and the current year; drop data schema if the first arg is 0"
   [& args]
-  (if (not (db/table-exists? ds (name holiday-table)))
-    (create-schema!))
-  (let [begin (or (parse-int-arg (first args)) 2007)
-        end (or (parse-int-arg (second args)) (t/int (t/year)))]
-    (do-data! begin end)))
+  (if (= 0 (parse-int-arg (first args)))
+    (drop-schema!)
+    (let [begin (or (parse-int-arg (first args)) 2007)
+          end (or (parse-int-arg (second args)) (t/int (t/year)))]
+      (load-data! begin end))))
