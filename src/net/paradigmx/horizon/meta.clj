@@ -5,7 +5,17 @@
 (def db-name meta-name)
 (def holiday-table :holiday)
 
-(defn load-config []
+(def config
   (if-let [config (read-string (slurp "local/config.edn"))]
     (get-in config [(keyword meta-name)])
     nil))
+
+(def db-spec (get-in config [:db] {:dbtype "postgresql"
+                                   :host "localhost"
+                                   :port 5432
+                                   :user "paradigmx"
+                                   :password "test"
+                                   :dbname db-name}))
+
+;; if we have to do adaptions for different dbms...
+;; (def db-type (get-in db-spec [:dbtype] "postgresql"))

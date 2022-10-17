@@ -6,7 +6,7 @@
             [net.paradigmx.common.core :refer [if-let*]]
             [net.paradigmx.common.date :refer [format-date parse-date weekend? days-in-month]]
             [net.paradigmx.common.db :as db]
-            [net.paradigmx.horizon.meta :refer [db-name load-config]]))
+            [net.paradigmx.horizon.meta :refer [db-spec]]))
 
 ;; date helpers
 (defn- data-for-normal-day [d]
@@ -25,7 +25,7 @@
     (if query-result query-result (data-for-normal-day d))))
 
 ;; db helpers
-(def ds (jdbc/get-datasource (db/db-spec-from-config (load-config) db-name)))
+(def ds (jdbc/get-datasource db-spec))
 
 (defn db-query-holiday
   "query holiday db for a given day"
