@@ -14,13 +14,13 @@
 
 (def rs-opts {:builder-fn rs/as-unqualified-lower-maps})
 
-(defn- conn-withopts [conn]
+(defn- conn-with-opts [conn]
   (jdbc/with-options conn rs-opts))
 
 (defn exec! [conn]
-  (let [ds-opts (conn-withopts conn)]
+  (let [ds-opts (conn-with-opts conn)]
     (partial jdbc/execute! ds-opts)))
 
 (defn exec-one! [conn]
-  (let [ds-opts (conn-withopts conn)]
+  (let [ds-opts (conn-with-opts conn)]
     (partial jdbc/execute-one! ds-opts)))
