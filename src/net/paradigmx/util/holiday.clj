@@ -37,7 +37,7 @@
       (sql/format)
       ((db/exec! ds))))
 
-(defn init-schema! []
+(defn create-schema! []
   (with-open [conn (jdbc/get-connection ds)]
     (jdbc/with-transaction [tx conn]
       (-> (create-table holiday-table :if-not-exists)
@@ -51,7 +51,7 @@
                        :add-index [:unique nil :date]})
           ((db/exec! tx))))))
 
-(defn insert-or-update! [date name is-off]
+(defn insert-row! [date name is-off]
   (-> (sql/format {:insert-into holiday-table
                    :values [{:date date :name name :is-off is-off}]
                    :on-duplicate-key-update {:name name :is-off is-off}})
@@ -59,18 +59,18 @@
   (print ".")
   )
 
-(defn do-data-for-year! [year]
+(defn do-data-of-year! [year]
   (print (format "[%d]" year))
   (doseq [day (data-for-year year)]
     (let [{date :date name :name is-off :isOffDay} day
           is-off (if is-off 1 0)]
-      (insert-or-update! date name is-off)))
+      (insert-row! date name is-off)))
   (println))
 
-(defn pull-data! [begin end]
+(defn do-data! [begin end]
   (println (format "pulling and processing holiday data between year %d-%d" begin end))
   (doseq [x (range begin (+ end 2))]
-    (do-data-for-year! x))
+    (do-data-of-year! x))
   (println "done."))
 
 #_{:clj-kondo/ignore [:missing-else-branch]}
@@ -79,7 +79,7 @@
   default to 2007 and the current year"
   [& args]
   (if (not (db/table-exists? ds (name holiday-table)))
-    (init-schema!))
+    (create-schema!))
   (let [begin (or (parse-int-arg (first args)) 2007)
         end (or (parse-int-arg (second args)) (t/int (t/year)))]
-    (pull-data! begin end)))
+    (do-data! begin end)))
