@@ -1,7 +1,7 @@
 (ns net.paradigmx.horizon.holiday
   (:require [next.jdbc :as jdbc]
             [honey.sql :as sql]
-            [honey.sql.helpers :as h :refer [select from where]]
+            [honey.sql.helpers :as h :refer [select from where order-by]]
             [tick.core :as t]
             [net.paradigmx.common.core :refer [if-let*]]
             [net.paradigmx.common.date :refer [format-date parse-date weekend? days-in-month]]
@@ -45,6 +45,7 @@
     (-> (select :h.date :h.name :h.is_off)
         (from [:holiday :h])
         (where [:between :h.date beginning end])
+        (order-by :h.date)
         (sql/format)
         ((db/exec! ds)))))
 
