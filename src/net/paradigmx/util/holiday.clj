@@ -8,7 +8,7 @@
             [honey.sql.helpers :as h :refer [create-table with-columns drop-table]]
             [tick.core :as t]
             [net.paradigmx.common.db :as db]
-            [net.paradigmx.horizon.meta :refer [db-spec holiday-table]]
+            [net.paradigmx.horizon.meta :refer [db-spec postgres? holiday-table]]
             [net.paradigmx.common.core :refer [parse-int-arg]]))
 
 ;; utility `holiday`
@@ -37,33 +37,47 @@
       (sql/format)
       ((db/exec! ds))))
 
+;; HACK different implementations for `postgresql` and `mysql/mariadb`
+(def ^:private create-table-id-clause
+  (if postgres?
+    [:id :int [:not nil] :generated :always :as :identity :primary :key]
+    [:id :int [:not nil] :auto-increment :primary :key]))
+
 (defn create-schema! []
   (with-open [conn (jdbc/get-connection ds)]
     (jdbc/with-transaction [tx conn]
       (-> (create-table holiday-table :if-not-exists)
-          (with-columns [[:id :int [:not nil] :auto-increment :primary :key]
+          (with-columns [create-table-id-clause
                          [:date [:char 10] [:not nil]]
                          [:name [:varchar 40] [:not nil]]
                          [:is_off :boolean [:not nil]]])
           (sql/format)
           ((db/exec! tx)))
-      (-> (sql/format {:alter-table holiday-table
-                       :add-index [:unique nil :date]})
-          ((db/exec! tx))))))
+      (let [nm (name holiday-table)
+            sql-template "CREATE UNIQUE INDEX %s_unique_date ON %s (date)"
+            sql (format sql-template nm nm)]
+        ((db/exec! tx) [sql])))))
+
+;; HACK different implementations for `postgresql` and `mysql/mariadb`
+(defn- insert-clause [date name is-off]
+  (let [base {:insert-into holiday-table
+              :values [{:date date :name name :is-off is-off}]}
+        mysql (assoc base
+                     :on-duplicate-key-update {:name name :is-off is-off})
+        pgsql (assoc base
+                     :on-conflict :date
+                     :do-update-set {:name name :is-off is-off})]
+    (if postgres? pgsql mysql)))
 
 (defn insert-row! [date name is-off]
-  (-> (sql/format {:insert-into holiday-table
-                   :values [{:date date :name name :is-off is-off}]
-                   :on-duplicate-key-update {:name name :is-off is-off}})
+  (-> (sql/format (insert-clause date name is-off))
       ((db/exec! ds)))
-  (print ".")
-  )
+  (print "."))
 
 (defn do-data-of-year! [year]
   (print (format "[%d]" year))
   (doseq [day (data-for-year year)]
-    (let [{date :date name :name is-off :isOffDay} day
-          is-off (if is-off 1 0)]
+    (let [{date :date name :name is-off :isOffDay} day]
       (insert-row! date name is-off)))
   (println))
 

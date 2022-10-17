@@ -17,5 +17,5 @@
                                    :password "test"
                                    :dbname db-name}))
 
-;; if we have to do adaptions for different dbms...
-;; (def db-type (get-in db-spec [:dbtype] "postgresql"))
+(def db-type (get-in db-spec [:dbtype] "postgresql"))
+(def postgres? (= "postgresql" db-type))
