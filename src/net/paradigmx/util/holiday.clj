@@ -33,7 +33,7 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
-  (-> (drop-table holiday-table)
+  (-> (drop-table :if-exists holiday-table)
       (sql/format)
       ((db/exec! ds))))
 
