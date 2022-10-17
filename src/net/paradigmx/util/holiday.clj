@@ -9,7 +9,7 @@
             [tick.core :as t]
             [net.paradigmx.common.mysql :as mysql]
             [net.paradigmx.common.db :as db]
-            [net.paradigmx.horizon.meta :as meta]
+            [net.paradigmx.horizon.meta :refer [db-name holiday-table load-config]]
             [net.paradigmx.common.core :refer [parse-int-arg]]))
 
 ;; utility `holiday`
@@ -30,32 +30,30 @@
       (json/read-str :key-fn keyword)
       (:days)))
 
-(def tname "holiday")
-
-(def ds (jdbc/get-datasource (db/db-spec-from-config (meta/load-config) meta/dbname)))
+(def ds (jdbc/get-datasource (db/db-spec-from-config (load-config) db-name)))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn drop-schema! []
-  (-> (drop-table (keyword tname))
+  (-> (drop-table holiday-table)
       (sql/format)
       ((db/exec! ds))))
 
 (defn init-schema! []
   (with-open [conn (jdbc/get-connection ds)]
     (jdbc/with-transaction [tx conn]
-      (-> (create-table (keyword tname) :if-not-exists)
+      (-> (create-table holiday-table :if-not-exists)
           (with-columns [[:id :int [:not nil] :auto-increment :primary :key]
                          [:date [:char 10] [:not nil]]
                          [:name [:varchar 40] [:not nil]]
                          [:is_off :boolean [:not nil]]])
           (sql/format)
           ((db/exec! tx)))
-      (-> (sql/format {:alter-table (keyword tname)
+      (-> (sql/format {:alter-table holiday-table
                        :add-index [:unique nil :date]})
           ((db/exec! tx))))))
 
 (defn insert-or-update! [date name is-off]
-  (-> (sql/format {:insert-into (keyword tname)
+  (-> (sql/format {:insert-into holiday-table
                    :values [{:date date :name name :is-off is-off}]
                    :on-duplicate-key-update {:name name :is-off is-off}})
       ((db/exec! ds)))
@@ -81,7 +79,7 @@
   "takes 0, 1 or 2 integer args which (if applicable) present the begin and end year to be processed,
   default to 2007 and the current year"
   [& args]
-  (if (not (mysql/table-exists? ds meta/dbname tname))
+  (if (not (mysql/table-exists? ds db-name (name holiday-table)))
     (init-schema!))
   (let [begin (or (parse-int-arg (first args)) 2007)
         end (or (parse-int-arg (second args)) (t/int (t/year)))]
