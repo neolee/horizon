@@ -1,4 +1,4 @@
-(defproject play24 "0.1.0-SNAPSHOT"
+(defproject play24 "1.0.0"
   :description "The game of calculating 24"
   :url "https://soulhacker.me"
   :dependencies [[org.clojure/clojure "1.11.1"]

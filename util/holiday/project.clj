@@ -1,4 +1,4 @@
-(defproject holiday "0.1.0-SNAPSHOT"
+(defproject holiday "1.0.0"
   :description "Utility to pull and process holiday data"
   :url "https://soulhacker.me"
   :dependencies [[org.clojure/clojure "1.11.1"]
