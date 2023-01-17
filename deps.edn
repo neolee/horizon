@@ -5,10 +5,10 @@
         tick/tick {:mvn/version "0.5.0"},
         org.clojure/data.json {:mvn/version "2.4.0"},
         clj-http/clj-http {:mvn/version "3.12.3"},
-        com.github.seancorfield/honeysql {:mvn/version "2.4.962"},
+        com.github.seancorfield/honeysql {:mvn/version "2.4.969"},
         com.github.seancorfield/next.jdbc {:mvn/version "1.3.847"},
         org.postgresql/postgresql {:mvn/version "42.5.1"},
-        org.mariadb.jdbc/mariadb-java-client {:mvn/version "3.1.0"},
+        org.mariadb.jdbc/mariadb-java-client {:mvn/version "3.1.1"},
         com.mysql/mysql-connector-j {:mvn/version "8.0.31"},
         io.pedestal/pedestal.service {:mvn/version "0.5.10"},
         io.pedestal/pedestal.route {:mvn/version "0.5.10"},
@@ -18,6 +18,6 @@
         org.slf4j/jul-to-slf4j {:mvn/version "1.7.36"},
         org.slf4j/jcl-over-slf4j {:mvn/version "1.7.36"},
         org.slf4j/log4j-over-slf4j {:mvn/version "1.7.36"}}
- :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.5" :git/sha "9c738da"}}
+ :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.1" :git/sha "27ff8a4"}}
                    :ns-default build}}
  }
