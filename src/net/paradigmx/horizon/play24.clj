@@ -36,7 +36,7 @@
    :enter
    (fn [context]
      (if-let* [s (get-in context [:request :path-params :numbers])
-               numbers (map parse-int-arg (str/split s #"\+"))
+               numbers (map parse-int-arg (str/split s #" "))
                solutions (mapv str (solve numbers))
                total (count solutions)]
        (assoc context :result {:total total :solutions solutions})
