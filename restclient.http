@@ -1,19 +1,20 @@
-# text/html is default
+# GET as text/html is default
 GET http://localhost:8000/todo/lst40861
 
-# application/json
+# GET as application/json
 GET http://localhost:8000/todo/lst40861
 Accept: application/json
 
-# application/edn
+# GET as application/edn
 GET http://localhost:8000/todo/lst40861
 Accept: application/edn
 
-# GET
-GET http://localhost:8000/todo/lst40861/item40867
-
 # GET 404
 GET http://localhost:8000/todo/lst40861/item40869
+
+# GET some item
+GET http://localhost:8000/todo/lst40861/item40867
+Accept: application/json
 
 # PUT
 PUT http://localhost:8000/todo/lst40861/item40873
@@ -48,5 +49,5 @@ GET http://localhost:8000/holiday/2022-10-02
 # GET /play24/:numbers
 GET http://localhost:8000/play24/2+5+7+11
 
-# GET /play24/:numbers bad input
+# GET /play24/:numbers bad number format
 GET http://localhost:8000/play24/2+5+7+a
