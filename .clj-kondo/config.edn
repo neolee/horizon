@@ -11,5 +11,5 @@
                       (clojure.test/is [thrown? thrown-with-msg? thrown-with-data?])
                       (io.pedestal.interceptor.error/error-dispatch [ctx ex])]}
            }
- :hooks {:analyze-call {net.paradigmx.common.core/if-let* hooks.horizon/if-let*}}
+ :lint-as {net.paradigmx.common.core/if-let* clojure.core/let}
  }
